@@ -30,7 +30,7 @@ function handlerNumRequests(req: Request, res: Response) {
 function handlerReset(req: Request, res: Response) {
     res.set('Content-Type', 'text/plain')
     config.fileserverHits = 0
-    res.send(`Reset!!`)
+    res.send("Hits reset to 0")
 }
 
 
