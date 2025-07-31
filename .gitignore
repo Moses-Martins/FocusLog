@@ -1,0 +1,29 @@
+# Node dependencies
+node_modules/
+
+# TypeScript build output
+dist/
+build/
+*.js
+*.js.map
+*.d.ts
+
+# Local environment files
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# OS / IDE-specific
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Optional cache folders
+.cache/
+.nyc_output/
+coverage/
+tsconfig.tsbuildinfo
