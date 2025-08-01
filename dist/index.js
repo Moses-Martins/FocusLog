@@ -3,9 +3,9 @@ import { config } from './config.js';
 const app = express();
 const PORT = 8080;
 app.use(middlewareLogResponses);
-app.get("/reset", handlerReset);
-app.get("/metrics", handlerNumRequests);
-app.get("/healthz", handlerReadiness);
+app.get("/api/reset", handlerReset);
+app.get("/admin/metrics", handlerMetrics);
+app.get("/api/healthz", handlerReadiness);
 app.use("/app", middlewareMetricsInc, express.static("./src/app"));
 app.use("/app", express.static("./assets/logo.png"));
 app.listen(PORT, () => {
@@ -15,14 +15,19 @@ function handlerReadiness(req, res) {
     res.set('Content-Type', 'text/plain');
     res.send("OK");
 }
-function handlerNumRequests(req, res) {
-    res.set('Content-Type', 'text/plain');
-    res.send(`Hits: ${config.fileserverHits}`);
+function handlerMetrics(req, res) {
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.send(`<html>
+                <body>
+                    <h1>Welcome, FocusLog Admin</h1>
+                    <p>FocusLog has been visited ${config.fileserverHits} times!</p>
+                </body>
+            </html>`);
 }
 function handlerReset(req, res) {
     res.set('Content-Type', 'text/plain');
     config.fileserverHits = 0;
-    res.send(`Reset!!}`);
+    res.send("Hits reset to 0");
 }
 function middlewareLogResponses(req, res, next) {
     res.on("finish", () => {
@@ -33,8 +38,6 @@ function middlewareLogResponses(req, res, next) {
     next();
 }
 function middlewareMetricsInc(req, res, next) {
-    res.on("finish", () => {
-        config.fileserverHits++;
-    });
+    config.fileserverHits++;
     next();
 }

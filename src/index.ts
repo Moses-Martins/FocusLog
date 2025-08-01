@@ -7,9 +7,9 @@ const PORT = 8080;
 
 app.use(middlewareLogResponses)
 
-app.get("/reset", handlerReset);
-app.get("/metrics", handlerNumRequests);
-app.get("/healthz", handlerReadiness);
+app.get("/admin/reset", handlerReset);
+app.get("/admin/metrics", handlerMetrics);
+app.get("/api/healthz", handlerReadiness);
 app.use("/app", middlewareMetricsInc, express.static("./src/app"));
 app.use("/app", express.static("./assets/logo.png"));
 
@@ -22,9 +22,14 @@ function handlerReadiness(req: Request, res: Response) {
     res.send("OK")
 }
 
-function handlerNumRequests(req: Request, res: Response) {
-    res.set('Content-Type', 'text/plain')
-    res.send(`Hits: ${config.fileserverHits}`)
+function handlerMetrics(req: Request, res: Response) {
+    res.set('Content-Type', 'text/html; charset=utf-8')
+    res.send(`<html>
+                <body>
+                    <h1>Welcome, FocusLog Admin</h1>
+                    <p>FocusLog has been visited ${config.fileserverHits} times!</p>
+                </body>
+            </html>`)
 }
 
 function handlerReset(req: Request, res: Response) {
