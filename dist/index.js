@@ -1,13 +1,34 @@
 import express from 'express';
+import { handlerValidateChirps } from './handlerValidateChirps.js';
+import { handlerRegister } from './handlerRegister.js';
+import { Error400 } from './ErrorClass.js';
 import { config } from './config.js';
 const app = express();
 const PORT = 8080;
 app.use(middlewareLogResponses);
-app.get("/api/reset", handlerReset);
+app.use(express.json());
+app.post("/api/validate_chirp", async (req, res, next) => {
+    try {
+        await handlerValidateChirps(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
+app.post("/api/auth/register", async (req, res, next) => {
+    try {
+        await handlerRegister(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
+app.post("/admin/reset", handlerReset);
 app.get("/admin/metrics", handlerMetrics);
 app.get("/api/healthz", handlerReadiness);
 app.use("/app", middlewareMetricsInc, express.static("./src/app"));
 app.use("/app", express.static("./assets/logo.png"));
+app.use(errorHandler);
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });
@@ -40,4 +61,15 @@ function middlewareLogResponses(req, res, next) {
 function middlewareMetricsInc(req, res, next) {
     config.fileserverHits++;
     next();
+}
+function errorHandler(err, req, res, next) {
+    console.log("This is an Error");
+    if (err instanceof Error400) {
+        res.status(400).json({ error: err.message });
+    }
+    else {
+        res.status(500).json({
+            error: "Something went wrong on our end"
+        });
+    }
 }

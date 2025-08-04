@@ -27,3 +27,7 @@ Thumbs.db
 .nyc_output/
 coverage/
 tsconfig.tsbuildinfo
+
+
+
+src/handlerValidateChirps.ts
