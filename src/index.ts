@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { handlerValidateChirps } from './handlerValidateChirps.js'
 import { handlerRegister } from './handlerRegister.js'
-import { Error400 } from './ErrorClass.js';
+import { handlerLogin } from './handlerLogin.js'
+import { Error400, Error401 } from './ErrorClass.js';
 import { config } from './config.js'
 import path from "path"
 
@@ -15,6 +15,13 @@ app.use(express.json())
 app.post("/api/auth/register", async (req, res, next) => {
   try {
     await handlerRegister(req, res);
+  } catch (error) {
+    next(error); // Pass the error to Express
+  }
+});
+app.post("/api/auth/login", async (req, res, next) => {
+  try {
+    await handlerLogin(req, res);
   } catch (error) {
     next(error); // Pass the error to Express
   }
@@ -70,6 +77,8 @@ function errorHandler(err: Error, req: Request, res: Response, next: NextFunctio
     console.log("This is an Error");
     if (err instanceof Error400) {
         res.status(400).json({error: err.message});
+    } else if (err instanceof Error401) {
+        res.status(401).json({error: err.message});
     } else {
         res.status(500).json({
             error: "Something went wrong on our end"

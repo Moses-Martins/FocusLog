@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
 import { createUser } from './db/queries/users.js';
+import { hashPassword } from './auth.js'
 
 
 type acceptData = {
     email: string
+    password: string
 }
 
 type respSuccessData = {
@@ -17,7 +19,7 @@ type respSuccessData = {
 export async function handlerRegister(req: Request, res: Response) {
     const params: acceptData = req.body
 
-    const createdUser = await createUser(params);
+    const createdUser = await createUser({email: params.email, hashedPassword: await hashPassword(params.password)});
     
     const respBody: respSuccessData = {
         id: createdUser.id,

@@ -3,5 +3,6 @@ CREATE TABLE "users" (
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"email" varchar(256) NOT NULL,
+	"hashed_password" varchar(255) NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
