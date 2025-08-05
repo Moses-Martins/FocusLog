@@ -3,11 +3,13 @@ process.loadEnvFile()
 type APIConfig = {
   fileserverHits: number;
   dbURL: string;
+  secret: string
 };
 
 export const config : APIConfig = {
     fileserverHits: 0,
     dbURL: envOrThrow('DB_URL'),  
+    secret: envOrThrow('SECRET'),  
 }
 
 function envOrThrow(key: string) {
