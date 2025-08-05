@@ -15,6 +15,20 @@
       "when": 1754388249490,
       "tag": "0001_colossal_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754393936411,
+      "tag": "0002_robust_wolfsbane",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1754398135778,
+      "tag": "0003_tricky_martin_li",
+      "breakpoints": true
     }
   ]
 }

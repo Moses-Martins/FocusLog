@@ -2,7 +2,11 @@ import express from 'express';
 import { handlerRegister } from './handlerRegister.js';
 import { handlerLogin } from './handlerLogin.js';
 import { handlerMe } from './handlerMe.js';
-import { Error400, Error401 } from './ErrorClass.js';
+import { handlerCreateSession } from './handlerCreateSession.js';
+import { handlerGetSessions } from './handlerGetSessions.js';
+import { handlerGetSessionByID } from './handlerGetSessionByID.js';
+import { handlerDeleteSessionByID } from './handlerDeleteSessionByID.js';
+import { Error400, Error401, Error403, Error404 } from './ErrorClass.js';
 import { config } from './config.js';
 const app = express();
 const PORT = 8080;
@@ -24,7 +28,46 @@ app.post("/api/auth/login", async (req, res, next) => {
         next(error); // Pass the error to Express
     }
 });
-app.use("/api/auth/me", handlerMe);
+app.use("/api/auth/me", async (req, res, next) => {
+    try {
+        await handlerMe(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
+app.post("/api/sessions", async (req, res, next) => {
+    try {
+        await handlerCreateSession(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
+app.get("/api/sessions", async (req, res, next) => {
+    try {
+        await handlerGetSessions(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
+app.get("/api/sessions/:id", async (req, res, next) => {
+    try {
+        await handlerGetSessionByID(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
+app.delete("/api/sessions/:id", async (req, res, next) => {
+    try {
+        await handlerDeleteSessionByID(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
 app.post("/admin/reset", handlerReset);
 app.get("/admin/metrics", handlerMetrics);
 app.get("/api/healthz", handlerReadiness);
@@ -54,7 +97,7 @@ function handlerReset(req, res) {
 }
 function middlewareLogResponses(req, res, next) {
     res.on("finish", () => {
-        if (res.statusCode != 200) {
+        if (res.statusCode >= 300) {
             console.log(`[NON-OK] ${req.method} ${req.url} - Status: ${res.statusCode}`);
         }
     });
@@ -71,6 +114,12 @@ function errorHandler(err, req, res, next) {
     }
     else if (err instanceof Error401) {
         res.status(401).json({ error: err.message });
+    }
+    else if (err instanceof Error403) {
+        res.status(403).json({ error: err.message });
+    }
+    else if (err instanceof Error404) {
+        res.status(404).json({ error: err.message });
     }
     else {
         res.status(500).json({

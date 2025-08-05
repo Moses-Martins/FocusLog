@@ -29,7 +29,7 @@ export async function handlerLogin(req: Request, res: Response) {
         throw new Error401("Incorrect email or password")
     }
 
-    const token = makeJWT(userFoundByEmail.id, 3600, config.secret)
+    const token = makeJWT(userFoundByEmail.id, 43200, config.secret)
 
     const respBody: respSuccessData = {
         id: userFoundByEmail.id,

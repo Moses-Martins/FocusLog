@@ -1,0 +1,1 @@
+ALTER TABLE "study_sessions" ALTER COLUMN "created_at" SET NOT NULL;
