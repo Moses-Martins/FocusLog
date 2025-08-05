@@ -1,6 +1,7 @@
 import express from 'express';
 import { handlerRegister } from './handlerRegister.js';
 import { handlerLogin } from './handlerLogin.js';
+import { handlerMe } from './handlerMe.js';
 import { Error400, Error401 } from './ErrorClass.js';
 import { config } from './config.js';
 const app = express();
@@ -23,6 +24,7 @@ app.post("/api/auth/login", async (req, res, next) => {
         next(error); // Pass the error to Express
     }
 });
+app.use("/api/auth/me", handlerMe);
 app.post("/admin/reset", handlerReset);
 app.get("/admin/metrics", handlerMetrics);
 app.get("/api/healthz", handlerReadiness);
