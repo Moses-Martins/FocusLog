@@ -1,6 +1,6 @@
 {
-  "id": "97c375b4-be2a-4b4c-8f60-b4e14f19c9ea",
-  "prevId": "258e9ef8-b8d5-4258-9da3-54660066322c",
+  "id": "69ac58b3-499f-491a-ad33-155615cd889e",
+  "prevId": "4d2e4889-7bc0-49f1-8af0-17fce14eaaaa",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -234,13 +234,13 @@
           "name": "note",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -293,14 +293,13 @@
           "name": "color",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'#000000'"
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },

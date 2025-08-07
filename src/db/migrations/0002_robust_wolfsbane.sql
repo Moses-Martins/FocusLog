@@ -1,1 +1,0 @@
-ALTER TABLE "study_sessions" ALTER COLUMN "note" SET NOT NULL;

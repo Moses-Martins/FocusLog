@@ -6,6 +6,10 @@ import { handlerCreateSession } from './handlerCreateSession.js'
 import { handlerGetSessions } from './handlerGetSessions.js'
 import { handlerGetSessionByID } from './handlerGetSessionByID.js'
 import { handlerDeleteSessionByID } from './handlerDeleteSessionByID.js'
+import { handlerCreateTag } from './handlerCreateTag.js'
+import { handlerGetTag } from './handlerGetTag.js'
+import { handlerGetTagByID } from './handlerGetTagByID.js'
+import { handlerDeleteTagByID } from './handlerDeleteTagByID.js'
 import { Error400, Error401, Error403, Error404 } from './ErrorClass.js';
 import { config } from './config.js'
 
@@ -62,6 +66,34 @@ app.get("/api/sessions/:id", async (req, res, next) => {
 app.delete("/api/sessions/:id", async (req, res, next) => {
   try {
     await handlerDeleteSessionByID(req, res);
+  } catch (error) {
+    next(error); // Pass the error to Express
+  }
+});
+app.post("/api/tags", async (req, res, next) => {
+  try {
+    await handlerCreateTag(req, res);
+  } catch (error) {
+    next(error); // Pass the error to Express
+  }
+});
+app.get("/api/tags", async (req, res, next) => {
+  try {
+    await handlerGetTag(req, res);
+  } catch (error) {
+    next(error); // Pass the error to Express
+  }
+});
+app.get("/api/tags/:id", async (req, res, next) => {
+  try {
+    await handlerGetTagByID(req, res);
+  } catch (error) {
+    next(error); // Pass the error to Express
+  }
+});
+app.delete("/api/tags/:id", async (req, res, next) => {
+  try {
+    await handlerDeleteTagByID(req, res);
   } catch (error) {
     next(error); // Pass the error to Express
   }
