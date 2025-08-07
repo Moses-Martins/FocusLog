@@ -147,7 +147,7 @@ function middlewareMetricsInc(req: Request, res: Response, next: NextFunction) {
 }
 
 function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
-    console.log("This is an Error");
+    console.log(err.message);
     if (err instanceof Error400) {
         res.status(400).json({error: err.message});
     } else if (err instanceof Error401) {

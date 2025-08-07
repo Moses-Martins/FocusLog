@@ -1,5 +1,5 @@
-import { tags } from "./tags";
-import { studySessions } from "./studySessions";
+import { tags } from "./tags.js";
+import { studySessions } from "./studySessions.js";
 import { pgTable, uuid, primaryKey } from "drizzle-orm/pg-core";
 
 export const sessionTags = pgTable(
@@ -12,3 +12,5 @@ export const sessionTags = pgTable(
     pk: primaryKey(table.sessionId, table.tagId),
   })
 );
+
+export type SessionTag = typeof sessionTags.$inferInsert;

@@ -1,16 +1,22 @@
 import { Request, Response } from 'express';
 import { findUserByID } from './db/queries/findUserByID.js';
-import { validateJWT } from './jwt.js'
-import { config } from './config.js'
-import { getBearerToken } from './auth.js'
+import { validateJWT } from './jwt.js';
+import { config } from './config.js';
+import { getBearerToken } from './auth.js';
 import { createStudySession } from './db/queries/createSessions.js';
+import { createTag } from './db/queries/createTags.js';
+import { createSessionTag } from './db/queries/createSessionTag.js';
+import { getTagIDByName } from './db/queries/getTagIdByName.js';
+import { getInnerJoinSessionTags } from './db/queries/getInnerJoinSessionTags.js';
 import { Error401 } from './ErrorClass.js';
 
 
 type acceptData = {
+    title: string
     startTime: string
     endTime: string
     note?: string | null
+    tags?: string[]
 }
 
 type respSuccessData = {
@@ -19,6 +25,7 @@ type respSuccessData = {
     startTime: Date
     endTime: Date
     note: string
+    tags: { id: string; name: string }[] 
     createdAt: Date
 }
 
@@ -36,15 +43,45 @@ export async function handlerCreateSession(req: Request, res: Response) {
     const { start, end } = validateSessionTimesOrThrow(params.startTime, params.endTime)
 
     if (!params.note) {
-        params.note = "-"
+      params.note = "-"
     }
 
     const createdSession = await createStudySession({
+        title: params.title,
         userId: IDStr,
         startTime: start,
         endTime: end,
         note: params.note,
     });
+
+    if (!params.tags) {
+      params.tags = []
+    }
+
+    for (const tag of params.tags) {
+      const id = await getTagIDByName(tag);
+
+      if (id === null) {
+        const createdTag = await createTag({
+            userId: IDStr,
+            name: tag,
+            color: "#000000",
+        });   
+        await createSessionTag({
+          sessionId: createdSession.id,
+          tagId: createdTag.id,
+        })
+        
+      } else {
+        await createSessionTag({
+          sessionId: createdSession.id,
+          tagId: id,
+        })
+
+      }
+    }
+
+    const tagArray = await getInnerJoinSessionTags(createdSession.id)
 
     const respBody: respSuccessData = {
         id: createdSession.id,
@@ -52,6 +89,7 @@ export async function handlerCreateSession(req: Request, res: Response) {
         startTime: createdSession.startTime,
         endTime: createdSession.endTime,
         note: createdSession.note,
+        tags: tagArray,
         createdAt: createdSession.createdAt
     }
     res.header("Content-Type", "application/json")
@@ -59,7 +97,6 @@ export async function handlerCreateSession(req: Request, res: Response) {
     res.status(201).send(body)
     res.end();
 }
-
 
 function tryParseCommonFormats(value: string): Date | null {
   if (!value || typeof value !== "string") return null;

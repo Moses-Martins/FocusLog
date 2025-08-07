@@ -1,5 +1,5 @@
 {
-  "id": "4d2e4889-7bc0-49f1-8af0-17fce14eaaaa",
+  "id": "a9232d79-fd46-4f3d-9833-863007c71658",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -212,6 +212,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "user_id": {
           "name": "user_id",
           "type": "uuid",
@@ -299,7 +305,7 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },

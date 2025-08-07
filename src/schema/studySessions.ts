@@ -3,6 +3,7 @@ import { users } from "./users.js";
 
 export const studySessions = pgTable("study_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time").notNull(),

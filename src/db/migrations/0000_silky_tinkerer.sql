@@ -23,6 +23,7 @@ CREATE TABLE "session_tags" (
 --> statement-breakpoint
 CREATE TABLE "study_sessions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"title" text NOT NULL,
 	"user_id" uuid NOT NULL,
 	"start_time" timestamp NOT NULL,
 	"end_time" timestamp NOT NULL,
@@ -35,7 +36,7 @@ CREATE TABLE "tags" (
 	"user_id" uuid NOT NULL,
 	"name" text NOT NULL,
 	"color" text NOT NULL,
-	"created_at" timestamp DEFAULT now()
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
