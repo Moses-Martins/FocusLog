@@ -10,6 +10,7 @@ import { handlerCreateTag } from './handlerCreateTag.js';
 import { handlerGetTag } from './handlerGetTag.js';
 import { handlerGetTagByID } from './handlerGetTagByID.js';
 import { handlerDeleteTagByID } from './handlerDeleteTagByID.js';
+import { handlerExportCsv } from './handlerExportCsv.js';
 import { Error400, Error401, Error403, Error404 } from './ErrorClass.js';
 import { config } from './config.js';
 const app = express();
@@ -99,6 +100,14 @@ app.get("/api/tags/:id", async (req, res, next) => {
 app.delete("/api/tags/:id", async (req, res, next) => {
     try {
         await handlerDeleteTagByID(req, res);
+    }
+    catch (error) {
+        next(error); // Pass the error to Express
+    }
+});
+app.get("/api/export/csv", async (req, res, next) => {
+    try {
+        await handlerExportCsv(req, res);
     }
     catch (error) {
         next(error); // Pass the error to Express
