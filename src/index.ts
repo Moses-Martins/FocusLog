@@ -11,6 +11,8 @@ import { handlerGetTag } from './handlerGetTag.js'
 import { handlerGetTagByID } from './handlerGetTagByID.js'
 import { handlerDeleteTagByID } from './handlerDeleteTagByID.js'
 import { handlerExportCsv } from './handlerExportCsv.js'
+import { handlerGetSessionByNoteSearch } from './handlerGetSessionByNoteSearch.js'
+import { handlerDailySummary } from './handlerDailySummary.js'
 import { Error400, Error401, Error403, Error404 } from './ErrorClass.js';
 import { config } from './config.js'
 
@@ -102,6 +104,20 @@ app.delete("/api/tags/:id", async (req, res, next) => {
 app.get("/api/export/csv", async (req, res, next) => {
   try {
     await handlerExportCsv(req, res);
+  } catch (error) {
+    next(error); // Pass the error to Express
+  }
+});
+app.get("/api/search", async (req, res, next) => {
+  try {
+    await handlerGetSessionByNoteSearch(req, res);
+  } catch (error) {
+    next(error); // Pass the error to Express
+  }
+});
+app.get("/api/summary/daily", async (req, res, next) => {
+  try {
+    await handlerDailySummary(req, res);
   } catch (error) {
     next(error); // Pass the error to Express
   }
