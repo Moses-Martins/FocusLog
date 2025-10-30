@@ -15,10 +15,13 @@ import { handlerGetTagByID } from './handlerGetTagByID.js';
 import { handlerLogin } from './handlerLogin.js';
 import { handlerMe } from './handlerMe.js';
 import { handlerRegister } from './handlerRegister.js';
+import { swaggerSpec, swaggerUiMiddleware } from './swagger.js';
 const app = express();
 const PORT = 8080;
 app.use(middlewareLogResponses);
 app.use(express.json());
+// Mount Swagger docs
+app.use('/api-docs', swaggerUiMiddleware.serve, swaggerUiMiddleware.setup(swaggerSpec));
 app.post("/api/auth/register", async (req, res, next) => {
     try {
         await handlerRegister(req, res);
@@ -140,10 +143,42 @@ app.use(errorHandler);
 app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
 });
+/**
+ * @swagger
+ * /api/healthz:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Returns "OK" when the API server is healthy.
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: Server is healthy
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: OK
+ */
 function handlerReadiness(req, res) {
     res.set('Content-Type', 'text/plain');
     res.send("OK");
 }
+/**
+ * @swagger
+ * /admin/metrics:
+ *   get:
+ *     summary: View simple HTML metrics page
+ *     description: Displays a basic HTML page with visit metrics for the FocusLog app.
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Metrics page displayed successfully
+ *         content:
+ *           text/html:
+ *             schema:
+ *               type: string
+ *               example: "<html><body><h1>Welcome, FocusLog Admin</h1><p>FocusLog has been visited 5 times!</p></body></html>"
+ */
 function handlerMetrics(req, res) {
     res.set('Content-Type', 'text/html; charset=utf-8');
     res.send(`<html>
@@ -153,6 +188,22 @@ function handlerMetrics(req, res) {
                 </body>
             </html>`);
 }
+/**
+ * @swagger
+ * /admin/reset:
+ *   post:
+ *     summary: Reset hit metrics
+ *     description: Resets the FocusLog file server hit counter back to 0.
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Metrics successfully reset
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Hits reset to 0
+ */
 function handlerReset(req, res) {
     res.set('Content-Type', 'text/plain');
     config.fileserverHits = 0;

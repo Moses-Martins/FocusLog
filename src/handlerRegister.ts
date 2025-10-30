@@ -16,6 +16,73 @@ type respSuccessData = {
     email: string;
 };
 
+/**
+ * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: Endpoints related to user registration and login
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user account
+ *     description: Creates a new user with a unique email and hashed password.
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: johndoe@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 8
+ *                 example: securePassword123
+ *     responses:
+ *       201:
+ *         description: User successfully registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "1a2b3c4d"
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-10-30T10:00:00.000Z"
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-10-30T10:00:00.000Z"
+ *                 email:
+ *                   type: string
+ *                   example: johndoe@example.com
+ *       400:
+ *         description: Invalid input or user already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Email already registered"
+ */
+
 function isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -24,28 +91,23 @@ function isValidEmail(email: string): boolean {
 export async function handlerRegister(req: Request, res: Response) {
     const params = req.body as acceptData;
 
-    // Validate input presence
     if (!params?.email || !params?.password) {
         throw new Error400('Email and password are required');
     }
 
-    // Validate email format
     if (!isValidEmail(params.email)) {
         throw new Error400('Invalid email format');
     }
 
-    // Validate password strength
     if (params.password.length < 8) {
         throw new Error400('Password must be at least 8 characters long');
     }
 
-    // Check if user already exists
     const existingUser = await findUserByEmail(params.email);
     if (existingUser) {
         throw new Error400('Email already registered');
     }
 
-    // Create new user
     const hashedPassword = await hashPassword(params.password);
     const createdUser = await createUser({ email: params.email, hashedPassword });
 
@@ -57,5 +119,4 @@ export async function handlerRegister(req: Request, res: Response) {
     };
 
     res.status(201).json(respBody);
-
 }

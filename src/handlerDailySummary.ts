@@ -1,30 +1,58 @@
 import { Request, Response } from 'express';
-import { findUserByID } from './db/queries/findUserByID.js';
-import { validateJWT } from './jwt.js';
-import { config } from './config.js';
 import { getBearerToken } from './auth.js';
-import { sessionTagRow, tagSummary, getDateSessionTag } from './db/queries/getDateSessionTag.js';
+import { config } from './config.js';
+import { findUserByID } from './db/queries/findUserByID.js';
+import { getDateSessionTag, sessionTagRow, tagSummary } from './db/queries/getDateSessionTag.js';
 import { Error401 } from './ErrorClass.js';
+import { validateJWT } from './jwt.js';
 
-
+/**
+ * @swagger
+ * /api/summary/daily:
+ *   get:
+ *     summary: Get daily summary of study time by tag
+ *     description: Returns the total minutes spent on each tag for the current day. Requires a valid JWT token.
+ *     tags: [Summary]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Daily summary successfully retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   tag:
+ *                     type: string
+ *                     example: "Focus"
+ *                   total_minutes:
+ *                     type: number
+ *                     example: 120
+ *       401:
+ *         description: Unauthorized — invalid or expired token
+ *       500:
+ *         description: Internal server error
+ */
 export async function handlerDailySummary(req: Request, res: Response) {
-    const token = getBearerToken(req)
-    const IDStr = validateJWT(token, config.secret)
-    const userFoundByID = await findUserByID(IDStr);
-    if (userFoundByID.id !== IDStr) {
-        throw new Error401("Invalid or expired token.");
-    }
+  const token = getBearerToken(req);
+  const IDStr = validateJWT(token, config.secret);
+  const userFoundByID = await findUserByID(IDStr);
+  if (userFoundByID.id !== IDStr) {
+    throw new Error401('Invalid or expired token.');
+  }
 
-    const date = new Date()
-    const sessionTag = await getDateSessionTag(date)
-    const respBody = groupByTagTotalMinutes(sessionTag)
+  const date = new Date();
+  const sessionTag = await getDateSessionTag(date);
+  const respBody = groupByTagTotalMinutes(sessionTag);
 
-    res.header("Content-Type", "application/json")
-    const body = JSON.stringify(respBody)
-    res.status(200).send(body)
-    res.end();
+  res.header('Content-Type', 'application/json');
+  const body = JSON.stringify(respBody);
+  res.status(200).send(body);
+  res.end();
 }
-
 
 function groupByTagTotalMinutes(rows: sessionTagRow[]): tagSummary[] {
   const tagMap = new Map<string, number>();

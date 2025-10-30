@@ -1,5 +1,5 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { Error401 } from './ErrorClass';
+import { Error401 } from './ErrorClass.js';
 
 type Payload = Pick<JwtPayload, "iss" | "sub" | "iat" | "exp">;
 

@@ -1,112 +1,193 @@
 import { Request, Response } from 'express';
-import { findUserByID } from './db/queries/findUserByID.js';
-import { validateJWT } from './jwt.js';
-import { config } from './config.js';
 import { getBearerToken } from './auth.js';
+import { config } from './config.js';
 import { createStudySession } from './db/queries/createSessions.js';
-import { createTag } from './db/queries/createTags.js';
 import { createSessionTag } from './db/queries/createSessionTag.js';
-import { getTagIDByName } from './db/queries/getTagIdByName.js';
+import { createTag } from './db/queries/createTags.js';
+import { findUserByID } from './db/queries/findUserByID.js';
 import { getInnerJoinSessionTags } from './db/queries/getInnerJoinSessionTags.js';
+import { getTagIDByName } from './db/queries/getTagIdByName.js';
 import { Error401 } from './ErrorClass.js';
-
+import { validateJWT } from './jwt.js';
 
 type acceptData = {
-    title: string
-    startTime: string
-    endTime: string
-    note?: string | null
-    tags?: string[]
-}
+  title: string;
+  startTime: string;
+  endTime: string;
+  note?: string | null;
+  tags?: string[];
+};
 
 type respSuccessData = {
-    id: string
-    userId: string
-    startTime: Date
-    endTime: Date
-    note: string
-    tags: { id: string; name: string }[] 
-    createdAt: Date
-}
+  id: string;
+  userId: string;
+  startTime: Date;
+  endTime: Date;
+  note: string;
+  tags: { id: string; name: string }[];
+  createdAt: Date;
+};
+
+/**
+ * @swagger
+ * /api/sessions:
+ *   post:
+ *     summary: Create a new study session
+ *     description: Creates a new study session for the authenticated user, optionally associating tags. Tags that do not exist will be created automatically.
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - startTime
+ *               - endTime
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "Math Study"
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-10-30T14:00:00Z"
+ *               endTime:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-10-30T16:00:00Z"
+ *               note:
+ *                 type: string
+ *                 example: "Focused on calculus and trigonometry"
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["math", "focus"]
+ *     responses:
+ *       201:
+ *         description: Session successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "sess_12345"
+ *                 userId:
+ *                   type: string
+ *                   example: "user_67890"
+ *                 startTime:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-10-30T14:00:00Z"
+ *                 endTime:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-10-30T16:00:00Z"
+ *                 note:
+ *                   type: string
+ *                   example: "Focused on calculus and trigonometry"
+ *                 tags:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "tag_1"
+ *                       name:
+ *                         type: string
+ *                         example: "math"
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-10-30T14:00:00Z"
+ *       400:
+ *         description: Bad request — invalid input or missing fields
+ *       401:
+ *         description: Unauthorized — invalid or expired JWT, or invalid time values
+ *       500:
+ *         description: Internal server error
+ */
 
 export async function handlerCreateSession(req: Request, res: Response) {
-    const token = getBearerToken(req)
-    const IDStr = validateJWT(token, config.secret)
-    const userFoundByID = await findUserByID(IDStr);
-    if (userFoundByID.id !== IDStr) {
-        throw new Error401("Invalid or expired token.");
-    }
+  const token = getBearerToken(req);
+  const IDStr = validateJWT(token, config.secret);
+  const userFoundByID = await findUserByID(IDStr);
+  if (userFoundByID.id !== IDStr) {
+    throw new Error401("Invalid or expired token.");
+  }
 
+  const params: acceptData = req.body;
+  const { start, end } = validateSessionTimesOrThrow(params.startTime, params.endTime);
 
-    const params: acceptData = req.body
-    
-    const { start, end } = validateSessionTimesOrThrow(params.startTime, params.endTime)
+  if (!params.note) {
+    params.note = "-";
+  }
 
-    if (!params.note) {
-      params.note = "-"
-    }
+  const createdSession = await createStudySession({
+    title: params.title,
+    userId: IDStr,
+    startTime: start,
+    endTime: end,
+    note: params.note,
+  });
 
-    const createdSession = await createStudySession({
-        title: params.title,
+  if (!params.tags) {
+    params.tags = [];
+  }
+
+  for (const tag of params.tags) {
+    const id = await getTagIDByName(tag);
+
+    if (id === null) {
+      const createdTag = await createTag({
         userId: IDStr,
-        startTime: start,
-        endTime: end,
-        note: params.note,
-    });
-
-    if (!params.tags) {
-      params.tags = []
+        name: tag,
+        color: "#000000",
+      });
+      await createSessionTag({
+        sessionId: createdSession.id,
+        tagId: createdTag.id,
+      });
+    } else {
+      await createSessionTag({
+        sessionId: createdSession.id,
+        tagId: id,
+      });
     }
+  }
 
-    for (const tag of params.tags) {
-      const id = await getTagIDByName(tag);
+  const tagArray = await getInnerJoinSessionTags(createdSession.id);
 
-      if (id === null) {
-        const createdTag = await createTag({
-            userId: IDStr,
-            name: tag,
-            color: "#000000",
-        });   
-        await createSessionTag({
-          sessionId: createdSession.id,
-          tagId: createdTag.id,
-        })
-        
-      } else {
-        await createSessionTag({
-          sessionId: createdSession.id,
-          tagId: id,
-        })
+  const respBody: respSuccessData = {
+    id: createdSession.id,
+    userId: createdSession.userId,
+    startTime: createdSession.startTime,
+    endTime: createdSession.endTime,
+    note: createdSession.note,
+    tags: tagArray,
+    createdAt: createdSession.createdAt,
+  };
 
-      }
-    }
-
-    const tagArray = await getInnerJoinSessionTags(createdSession.id)
-
-    const respBody: respSuccessData = {
-        id: createdSession.id,
-        userId: createdSession.userId,
-        startTime: createdSession.startTime,
-        endTime: createdSession.endTime,
-        note: createdSession.note,
-        tags: tagArray,
-        createdAt: createdSession.createdAt
-    }
-    res.header("Content-Type", "application/json")
-    const body = JSON.stringify(respBody)
-    res.status(201).send(body)
-    res.end();
+  res.header("Content-Type", "application/json");
+  const body = JSON.stringify(respBody);
+  res.status(201).send(body);
+  res.end();
 }
 
 function tryParseCommonFormats(value: string): Date | null {
   if (!value || typeof value !== "string") return null;
   value = value.trim();
 
-  // Try native Date first
   const direct = new Date(value);
   if (!isNaN(direct.getTime())) return direct;
 
-  // Try "YYYY-MM-DD HH:mm"
   const ymdHm = /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/;
   if (ymdHm.test(value)) {
     const isoLike = value.replace(/\s+/, "T") + ":00";
@@ -114,7 +195,6 @@ function tryParseCommonFormats(value: string): Date | null {
     if (!isNaN(d.getTime())) return d;
   }
 
-  // Try "YYYY-MM-DD"
   const ymd = /^\d{4}-\d{2}-\d{2}$/;
   if (ymd.test(value)) {
     const d = new Date(value + "T00:00:00");
@@ -137,12 +217,10 @@ export function validateSessionTimesOrThrow(startStr: string, endStr: string): {
 
   const now = new Date();
 
-  // 🚫 Past start time
   if (start.getTime() < now.getTime()) {
     throw new Error401("startTime must not be in the past.");
   }
 
-  // 🚫 End before or equal to start
   if (end.getTime() <= start.getTime()) {
     throw new Error401("endTime must be after startTime.");
   }

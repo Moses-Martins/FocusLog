@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Request } from 'express';
-import { Error400, Error401 } from './ErrorClass';
+import { Error400, Error401 } from './ErrorClass.js';
 
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 10;
