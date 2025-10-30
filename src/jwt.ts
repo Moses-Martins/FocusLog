@@ -1,4 +1,5 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { Error401 } from './ErrorClass';
 
 type Payload = Pick<JwtPayload, "iss" | "sub" | "iat" | "exp">;
 
@@ -19,11 +20,11 @@ export function validateJWT(tokenString: string, secret: string): string {
     const decoded = jwt.verify(tokenString, secret) as JwtPayload;
 
     if (!decoded.sub || typeof decoded.sub !== 'string') {
-      throw new Error("Token payload does not contain a valid 'sub' field");
+      throw new Error401("Invalid or expired JWT");
     }
 
     return decoded.sub;
   } catch (err) {
-    throw new Error("Invalid or expired JWT");
+    throw new Error401("Invalid or expired JWT");
   }
 }

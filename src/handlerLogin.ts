@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
+import { checkPasswordHash } from './auth.js';
+import { config } from './config.js';
 import { findUserByEmail } from './db/queries/findUserByEmail.js';
 import { Error401 } from './ErrorClass.js';
-import { checkPasswordHash } from './auth.js'
-import { makeJWT } from './jwt.js'
-import { config } from './config.js'
+import { makeJWT } from './jwt.js';
 
 
 type acceptData = {
@@ -29,7 +29,7 @@ export async function handlerLogin(req: Request, res: Response) {
         throw new Error401("Incorrect email or password")
     }
 
-    const token = makeJWT(userFoundByEmail.id, 43200, config.secret)
+    const token = makeJWT(userFoundByEmail.id, 3600, config.secret)
 
     const respBody: respSuccessData = {
         id: userFoundByEmail.id,
