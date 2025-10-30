@@ -10,7 +10,7 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: 'http://localhost:8080',
+      url: 'https://focuslog.onrender.com/',
       description: 'Development server',
     },
   ],
